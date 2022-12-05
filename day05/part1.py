@@ -19,12 +19,13 @@ def parse_stacks(data: str) -> Dict[int, deque]:
             return finalstacks
         f = False
         for c, x in enumerate(r):
-            # print((f, c, x))
-            # pprint(finalstacks)
-            # pprint(stacks)            
+            print((f, c, x))
+            pprint(finalstacks)
+            pprint(stacks)            
             try:
                 col = int(x)
                 finalstacks[col] = stacks[c]
+                finalstacks[col].reverse()
             except ValueError:
                 pass
             if f:
@@ -48,19 +49,19 @@ def main():
         data = [d.rstrip() for d in f.readlines()]
 
     stacks = parse_stacks(data)
+    pprint(("STACKS", stacks))
     for count, f, t in parse_moves(data):
         print((count, f, t))
         pprint(stacks)
-        boxes = []
         for x in range(count):
-            boxes.append(stacks[f].popleft())
-        for b in boxes[::-1]:
-            stacks[t].append(b)
+            pprint(stacks[f])
+            pprint(stacks[t])
+            stacks[t].append(stacks[f].pop())
     pprint(stacks)
  
     tops = []
     for k in sorted(stacks.keys()):
-        tops.append(stacks[k].popleft())
+        tops.append(stacks[k].pop())
     print(''.join(tops))
         
             
