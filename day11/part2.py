@@ -30,7 +30,7 @@ OPERS = {
 class Monkey(object):
     def __init__(self):
         self.items = deque()
-        self.operation = None        
+        self.operation = None
         self.test = None
         self.t = None
         self.f = None
@@ -38,6 +38,19 @@ class Monkey(object):
 
     def __repr__(self):
         return f"Starting items: {self.items}\nOperation: X\nTest: divisible by {self.test}\nTrue: {self.t}\nFalse: {self.f}"
+
+class Item(object):
+    def __init__(self, *val):
+        self.items = deque(val)
+
+    def add(self, x):
+        self.items.append(x)
+
+    def val(self):
+        return self.items[-1]
+
+    def __repr__(self):
+        return "item[" + ", ".join(str(x) for x in self.items) + "]"
 
 def parse(data: List[str]) -> List[Dict[str, Any]]:
     monkies = []
@@ -52,10 +65,11 @@ def parse(data: List[str]) -> List[Dict[str, Any]]:
             for i in r[2:]:
                 if i.endswith(','):
                     i = i[:-1]
-                current.items.append(int(i))
+                current.items.append(Item(int(i)))
         elif row.startswith('Operation'):
             oper = OPERS[r[4]]
             print(f"Oper {r[4]} {r[5]}")
+            current.odesc = row[len("Operation: "):]
             if r[5] == 'old':
                 # current.operation = lambda o: oper(o, o)   
                 current.operation = lambda o,func=oper: func(o, o)
@@ -85,23 +99,33 @@ def main():
     pprint.pprint(monkies)
 
     print(type(monkies))
-    for r in range(20):
+    seen = {}
+    last = list(m.inspections for m in monkies)
+    for r in range(240):
         for m in monkies:
             items = m.items
             m.items = deque()
             for i in items:                
-                w = m.operation(i)
+                w = m.operation(i.val())
+                i.add(w)
                 # print(f"Item: {i} w {w}")
-                w = int(w / 3)
+                # w = int(w / 3)
                 # print(f"Item: {i} w {w}")
                 if w % m.test == 0:
-                    monkies[m.t].items.append(w)
+                    next, c = m.t, True
                 else:
-                    monkies[m.f].items.append(w)
+                    next, c = m.f, False
+                # print(f"test {m.test} {w} {m.t} {m.f} {c} {next} {m.odesc}")
+                monkies[next].items.append(i)
                 m.inspections += 1
         print(f"Round {r}:")
+        delta = tuple(m.inspections - last[e] for e, m in enumerate(monkies))
+        seen[delta] = r
         for e, m in enumerate(monkies):
-            print(f"{e}: {m.items} {m.inspections}")
+            # print(f"{e}: {m.items} {m.inspections}")
+            print(f"{e}: {m} {m.inspections} {delta[e]}")
+        
+        last = list(m.inspections for m in monkies)
 
     i = [m.inspections for m in monkies]
     i.sort()
