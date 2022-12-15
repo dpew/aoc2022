@@ -49,11 +49,12 @@ def main():
     # print(list(grid.keys()))
     m1, m2 = advent.minmax(*list(grid.keys()))
     def printgrid():        
+        m1, m2 = advent.minmax(*list(grid.keys()))
         for r in range(m1[1], m2[1] + 1):
             print("".join(grid[(c, r)] for c in range(m1[0], m2[0] +1 )))
     printgrid()
 
-    maxrow = m2[1] + 1
+    maxrow = m2[1]+1
     within = True
     sandcount = 0
     while within:
@@ -64,18 +65,19 @@ def main():
             for nextpos in (0, 1), (-1, 1), (1, 1):
                 trypos = advent.addpos(pos, nextpos)
                 if trypos[1] > maxrow:
-                    within = False
                     break
                 if grid[trypos] == '.':
                     pos = trypos
                     moved = True
                     break
         grid[pos] = 'O'
+        if pos == (500, 0):
+            within = False
         sandcount += 1
         # printgrid()
 
     printgrid()
-    print(sandcount-1)
+    print(sandcount)
 
     
 
