@@ -2,6 +2,7 @@
 
 import itertools
 import math
+from typing import List, Tuple, Dict, Any
 
 
 def mdistance(p1, p2):
@@ -20,7 +21,7 @@ def mdistance(p1, p2):
         3
         >>> mdistance((8, 9, 10), (9, 7, 5))
         8
-        >>> mdistance(xrange(5), xrange(1, 6))
+        >>> mdistance(range(5), range(1, 6))
         5
         >>> mdistance((10, 10, 10), (12, 12, 12))
         6
@@ -163,12 +164,12 @@ def minmax(*positions):
         ((-100, -5, 1), (4, 10, 8))
         >>> minmax((-4, 10, 8))
         ((-4, 10, 8), (-4, 10, 8))
-        >>> minmax(*zip(xrange(10), xrange(10)))
+        >>> minmax(*zip(range(10), range(10)))
         ((0, 0), (9, 9))
     '''
     p2 = iter(itertools.tee(positions, 2))
-    return (tuple(min(x) for x in zip(*p2.next())),
-            tuple(max(x) for x in zip(*p2.next())))
+    return (tuple(min(x) for x in zip(*p2.__next__())),
+            tuple(max(x) for x in zip(*p2.__next__())))
 
 def cubeintersect(p1, p2, s, radius):
     '''
@@ -329,6 +330,35 @@ class Repeat(object):
     def __repr__(self):
         return "repeat(%d, %d)" % (self.start, self.end)
 
+def add_segment(segments: List[Tuple[int, int]], pos: Tuple[int, int]) -> List[Tuple[int, int]]:
+    '''
+        >>> add_segment([(1, 4), (20, 22)], (7, 8))
+        [(1, 4), (7, 8), (20, 22)]
+        >>> add_segment([(1, 4), (20, 22)], (0, 20))
+        [(0, 22)]
+        >>> add_segment([(1, 4), (20, 22)], (2, 8))
+        [(1, 8), (20, 22)]
+    '''
+    newseg = list(list(t) for t in segments)
+    newseg.append(list(pos))
+    merged = merge_intervals(newseg)
+    merged = list(tuple(t) for t in merged)
+    return merged
+
+def merge_intervals(intervals: List[List[int]]) -> List[List[int]]:
+    # Sort the array on the basis of start values of intervals.
+    intervals.sort()
+    stack = []
+    # insert first interval into stack
+    stack.append(intervals[0])
+    for i in intervals[1:]:
+        # Check for overlapping interval,
+        # if interval overlap
+        if stack[-1][0] <= i[0] <= stack[-1][-1]:
+            stack[-1][-1] = max(stack[-1][-1], i[-1])
+        else:
+            stack.append(i)
+    return stack
 
 if __name__ == '__main__':
     import doctest
