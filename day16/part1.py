@@ -66,9 +66,11 @@ def main():
     print("\n".join(repr(n) for n in nodes.values()))
 
     pos = Path('AA', 30, frozenset(), 0)
+    maxopened = defaultdict(lambda: -1)
+    maxopened['ALL'] = (-1, 0)
     seen = set()
-    Q = set()    
-    Q.add(pos)
+    Q = set()
+    Q.add(pos)    
 
     def findmax():
         # print(f"POPMIN Q={Q}")
@@ -85,12 +87,18 @@ def main():
         if time == 0:
             return
 
-        if pos.node not in pos.opened:
-            yield Path(pos.node, time, frozenset(chain(pos.opened, [pos.node])), pos.value + node.flow * pos.time)
+        if maxopened[pos.opened] > pos.value:
+            return
+
+        if pos.node not in pos.opened and node.flow > 0:
+            p = Path(pos.node, time, frozenset(chain(pos.opened, [pos.node])), pos.value + node.flow * time)
+            if p.value > maxopened['ALL'][0]:
+                maxopened['ALL'] = (p.value, p.opened)
+            if p.value >= maxopened[p.opened]:
+                maxopened[p.opened] = p.value
+                yield p
 
         for n in node.vert:
-            if n in pos.opened:
-                continue
             yield Path(n, time, pos.opened, pos.value)
 
         
@@ -100,11 +108,10 @@ def main():
         seen.add(next)
         # print(f"STEP next={next}")
         for n in neighbors(next):
-            if n.time == 1:
-                print(n)
-                sys.exit(0)
             # print(repr(n))
             Q.add(n)
+    print(n)
+    print(maxopened['ALL'])
 
 if __name__ == '__main__':
     main()
