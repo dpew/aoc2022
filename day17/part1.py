@@ -23,6 +23,9 @@ class Rock(object):
             for c, piece in enumerate(row):            
                 self.rock[(r, c)] = piece
 
+        m1, m2 = advent.minmax(*self.rock.keys())
+        self.size = tuple(x+1 for x in m2)
+
     def __repr__(self):
         m1, m2 = advent.minmax(*self.rock.keys())
         l = []
@@ -39,7 +42,8 @@ def makerocks():
         if not row:
             yield Rock(rockdata)
             rockdata = []
-        rockdata.append(row)
+        else:
+            rockdata.append(row)
     yield Rock(rockdata)
        
 class Tunnel(object):
@@ -83,6 +87,7 @@ def main():
     for r in rocks:
         print(" ")
         print(r)
+        print(r.size)
 
     tunnel = Tunnel()
     tunnel[(-1, 1)] = '.'
