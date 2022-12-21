@@ -118,9 +118,10 @@ def main():
         print(", ".join(str(nv.val) for nv in navigate(start)))
 
     for n in ordered:
-        print(f"Move {n.val}")
+        # print(f"Move {n.val}")
         move(n)
         # printit()
+    printit()
 
     for n in ordered:
         if n.val == 0:

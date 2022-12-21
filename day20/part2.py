@@ -124,46 +124,100 @@ class DougList(object):
 
     def fastmove(self, n: Node, count: int = None):
         def moveto(n: Node, count: int):
-            if count < 0:
-                count -= 1
+            print(f"moveto(n={n}, count={count})")
+            if count == 0:
+                return
+            # remove node
+            prev = n.prev
+            next = n.next
+            prev.next = next
+            next.prev = prev
+
             s = n.advance(count)
-            # if s.val == 42 and n.val == 4999:
-                # print(f"snv={s.next.val} spv={s.prev.val} nnv={n.next.val} npv={n.prev.val}" )
 
-            if s == n:
-                # print("SAME")
-                return
-            if n.next == s:
-                pass
-                # print("MOVE NEXT")
-            if n.prev == s:
-                # print("MOVE PREV")
-                return
-            else:
-                safter = s.next
-                sbefore = s.prev
-
-                nafter = n.next
-                nbefore = n.prev
-
-                nafter.prev = nbefore
-                nbefore.next = nafter
-                # if count > 0:
-                s.next = n
-                n.prev = s
-
-                n.next = safter
-                safter.prev = n
+            # Insert before s
+            sn = s.next
+            s.next = n
+            n.prev = s
+            n.next = sn
+            sn.prev = n
         if count is None:
             count = n.val
         if count == 0:
             return
         size = len(self.ordered)
-        if count > 0:
-            moveto(n, (count+1) % size)
-        else:
-            moveto(n, -((-count) % size))
+        # if count > 0:
+        moveto(n, (count % (size-1)))
+        # else:
+            # moveto(n, -((-count) % (size-1)))
 
+
+def runtest():
+    decryptkey = 299
+    try:
+        input = sys.argv[1]
+    except IndexError:
+            input = "input.txt"
+    with open(input) as f:
+        data = list(r.rstrip() for r in f.readlines())
+
+    dl2 = DougList()
+    dl3 = DougList()
+    for d in data:
+        dl2.append(int(d) * decryptkey)
+        dl3.append(int(d) * decryptkey)
+
+    print(dl2)
+    size = len(dl2.ordered)
+    for i in range(10):
+        for e, n in enumerate(dl2.ordered):
+            before = str(dl2)
+            n3 = dl3.ordered[e]            
+            dl2.fastmove(n)
+            dl3.move(n3)
+            if str(dl2) != str(dl3):
+                raise ValueError(f"Failure at step {e} with {n}\nbefore={before}\nexpect={dl3}\n   got={dl2}")
+            print(dl2)
+
+    for n in dl2.ordered:
+        if n.val == 0:
+            zero = n
+            break
+
+    v1 = zero.advance(1000 % size).val
+    v2 = zero.advance(2000 % size).val
+    v3 = zero.advance(3000 % size).val
+
+    print((v1, v2, v3, v1 + v2 + v3))
+
+def puzzle():
+    decryptkey = 811589153
+    try:
+        input = sys.argv[1]
+    except IndexError:
+            input = "input.txt"
+    with open(input) as f:
+        data = list(r.rstrip() for r in f.readlines())
+
+    dl2 = DougList()
+    for d in data:
+        dl2.append(int(d) * decryptkey)
+
+    size = len(dl2.ordered)
+    for i in range(10):
+        for n in dl2.ordered:
+            dl2.fastmove(n)
+
+    for n in dl2.ordered:
+        if n.val == 0:
+            zero = n
+            break
+
+    v1 = zero.advance(1000 % size).val
+    v2 = zero.advance(2000 % size).val
+    v3 = zero.advance(3000 % size).val
+
+    print((v1, v2, v3, v1 + v2 + v3))
 
 
 def main():
@@ -205,42 +259,7 @@ def main():
         print((v1, v2, v3, v1 + v2 + v3))
         sys.exit(1)
 
-    decryptkey = 811589153
-    decryptkey = 10
-    try:
-        input = sys.argv[1]
-    except IndexError:
-            input = "input.txt"
-    with open(input) as f:
-        data = list(r.rstrip() for r in f.readlines())
-
-    dl2 = DougList()
-    dl3 = DougList()
-    for d in data:
-        dl2.append(int(d) * decryptkey)
-        dl3.append(int(d) * decryptkey)
-
-    size = len(dl2.ordered)
-    for i in range(10):
-        for e, n in enumerate(dl2.ordered):
-            before = str(dl2)
-            n3 = dl3.ordered[e]            
-            dl2.fastmove(n)
-            dl3.move(n3)
-            if str(dl2) != str(dl3):
-                raise ValueError(f"Failure at step {e} with {n}\nbefore={before}\nexpect={dl3}\n   got={dl2}")
-
-    for n in dl2.ordered:
-        if n.val == 0:
-            zero = n
-            break
-
-    v1 = zero.advance(1000 % size).val
-    v2 = zero.advance(2000 % size).val
-    v3 = zero.advance(3000 % size).val
-
-    print((v1, v2, v3, v1 + v2 + v3))
-
+    puzzle()
 
 if __name__ == '__main__':
     main()
