@@ -24,6 +24,9 @@ class Node(object):
         self.next: Node = None
         self.prev: Node = None
 
+    def __repr__(self):
+        return str(self.val)
+
     def advance(self, count: int) -> Node:
         n = self
         if count >= 0:
@@ -73,6 +76,7 @@ class DougList(object):
     def __init__(self):
         self.start = None
         self.ordered = []
+        self.zero = None
 
     def append(self, val: int):
         n = Node(val)
@@ -87,16 +91,19 @@ class DougList(object):
             self.start.prev = n
 
         self.ordered.append(n)
+        if n.val == 0:
+            self.zero = n
 
     def navigate(self):
-        yield self.start
-        n = self.start.next
-        while n is not self.start:
+        begin = self.zero
+        yield begin
+        n = begin.next
+        while n is not begin:
             yield n
             n = n.next
 
     def rnavigate(self):
-        begin = self.start.prev
+        begin = self.zero
         yield begin
         n = begin.prev
         while n is not begin:
@@ -115,78 +122,48 @@ class DougList(object):
             for i in range(-count):
                 n.swapprev()
 
+    def fastmove(self, n: Node, count: int = None):
+        def moveto(n: Node, count: int):
+            if count < 0:
+                count -= 1
+            s = n.advance(count)
+            # if s.val == 42 and n.val == 4999:
+                # print(f"snv={s.next.val} spv={s.prev.val} nnv={n.next.val} npv={n.prev.val}" )
 
-def moveto(n: Node, count: int):
-    if count < 0:
-        count -= 1
-    s = findnext(n, count)
-    if s.val == 42 and n.val == 4999:
-        print(f"snv={s.next.val} spv={s.prev.val} nnv={n.next.val} npv={n.prev.val}" )
+            if s == n:
+                # print("SAME")
+                return
+            if n.next == s:
+                pass
+                # print("MOVE NEXT")
+            if n.prev == s:
+                # print("MOVE PREV")
+                return
+            else:
+                safter = s.next
+                sbefore = s.prev
 
-    if s == n:
-        print("SAME")
-        return
-    if n.next == s:
-        print("MOVE NEXT")
-    if n.prev == s:
-        print("MOVE PREV")
-        return
-    else:
-        safter = s.next
-        sbefore = s.prev
+                nafter = n.next
+                nbefore = n.prev
 
-        nafter = n.next
-        nbefore = n.prev
+                nafter.prev = nbefore
+                nbefore.next = nafter
+                # if count > 0:
+                s.next = n
+                n.prev = s
 
-        nafter.prev = nbefore
-        nbefore.next = nafter
-        # if count > 0:
-        s.next = n
-        n.prev = s
+                n.next = safter
+                safter.prev = n
+        if count is None:
+            count = n.val
+        if count == 0:
+            return
+        size = len(self.ordered)
+        if count > 0:
+            moveto(n, (count+1) % size)
+        else:
+            moveto(n, -((-count) % size))
 
-        n.next = safter
-        safter.prev = n
-    # else:
-    #     s.prev = n
-    #     n.next = s
-
-    #     n.prev = sbefore
-    #     sbefore.next = n
-
-def moveit(n: Node, count: int, size: int):    
-    if count == 0:
-        pass
-    # elif count == 1:
-    #     swapnext(n)
-    #     if n.next.val == None:
-    #         swapnext(n)
-    # elif count == -1:
-    #     swapprev(n)
-    #     if n.prev.val == None:
-    #         swapprev(n)
-    elif count > 0:
-        moveto(n, count % size)
-    else:
-        moveto(n, -((-count)%size))
-
-def move(start: Node, n: Node, size: int):
-    before = doprint(n)
-    moveit(n, n.val, size)
-    middle = doprint(n)
-    moveit(n, -n.val, size)
-    after = doprint(n)
-    if before != after:
-        raise ValueError(f"We have a problem moving {n.val} size={size}\nb=[{before}]\nm=[{middle}]\na=[{after}]")
-    moveit(n, n.val, size)
-
-def indexof(n: Node, i: int, size: int):
-    x = i % size
-    
-    for j in range(x):
-        n = n.next
-        if n.val is None:
-            n = n.next
-    return n.val
 
 
 def main():
@@ -197,7 +174,7 @@ def main():
     with open(input) as f:
         data = list(r.rstrip() for r in f.readlines())
 
-    test = True
+    test = False
     if test:
         dl = DougList()
 
@@ -229,6 +206,7 @@ def main():
         sys.exit(1)
 
     decryptkey = 811589153
+    decryptkey = 10
     try:
         input = sys.argv[1]
     except IndexError:
@@ -236,37 +214,30 @@ def main():
     with open(input) as f:
         data = list(r.rstrip() for r in f.readlines())
 
-    n = Node(None)
-    n.next = n
-    n.prev = n
-    start = n
-
-    ordered = []
+    dl2 = DougList()
+    dl3 = DougList()
     for d in data:
-        nn = Node(int(d) * decryptkey)
-        nn.next = n.next
-        nn.next.prev = nn
-        nn.prev = n
-        n.next = nn
-        ordered.append(nn)
-        n = nn
+        dl2.append(int(d) * decryptkey)
+        dl3.append(int(d) * decryptkey)
 
-    size = len(ordered)
-    printit()
+    size = len(dl2.ordered)
     for i in range(10):
-        for n in ordered:
-            # print(f"Move {n.val}")
-            move(start, n, size)
-        printit()
+        for e, n in enumerate(dl2.ordered):
+            before = str(dl2)
+            n3 = dl3.ordered[e]            
+            dl2.fastmove(n)
+            dl3.move(n3)
+            if str(dl2) != str(dl3):
+                raise ValueError(f"Failure at step {e} with {n}\nbefore={before}\nexpect={dl3}\n   got={dl2}")
 
-    for n in ordered:
+    for n in dl2.ordered:
         if n.val == 0:
             zero = n
             break
 
-    v1 = indexof(zero, 1000, size)
-    v2 = indexof(zero, 2000, size)
-    v3 = indexof(zero, 3000, size)
+    v1 = zero.advance(1000 % size).val
+    v2 = zero.advance(2000 % size).val
+    v3 = zero.advance(3000 % size).val
 
     print((v1, v2, v3, v1 + v2 + v3))
 
