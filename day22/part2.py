@@ -13,6 +13,8 @@ import numpy as np
 mydir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(mydir, '../lib'))
 
+import advent
+
 TURN = {
     'R': 90,
     'L': -90 
@@ -25,107 +27,107 @@ DVALUE = {
     (0, -1): 3
 }
 
-import advent
+SIDES = ((0, None, None), (1, None, None),
+         (None, 0, None), (None, 1, None),
+         (None, None, 0), (None, None, 1))
 
 
+class Side:
 
+    def __init__(self, side: Tuple[int]):
+        self.side = side
+        self.grid = {}
+        assert len(side) == 3
+        assert sum(i is not None for i in side) == 1
+
+    def put(self, pos, val):
+        self.grid[pos] = val
+
+    
 
 def translate_3d(pos: Tuple[int], size: int) -> Tuple[int]:
     '''
         Translates from 2d to 3d using the folding
+        >>> translate_3d((0, 0), 4)
+        ((0, 3, 0), (None, None, 0))
+        >>> translate_3d((1, 3), 4)
+        ((1, 0, 0), (None, None, 0))
+        >>> translate_3d((2, 4), 4)
+        ((2, 0, 0), (None, 0, None))
+        >>> translate_3d((3, 7), 4)
+        ((3, 0, 3), (None, 0, None))
+        >>> translate_3d((-1, 7), 4)
+        ((0, 3, 3), (0, None, None))
+        >>> translate_3d((-3, 7), 4)
+        ((0, 1, 3), (0, None, None))
     '''
-    foldsX = int(pos[0] / size)
-    foldsY = int(pos[1] / size)
-
-     matrix = advent.translate(0, 0, 0)
-    for i in range(foldsY):
-        matrix = np.dot(advent.translate(0, -size*foldsY, 0))
-        matrix = np.dot(matrix, advent.rotateX(-90))
-
-    if foldsX == 0:
-        pass
-    elif foldsX == -1:
-        matrix = np.dot(advent.translate(-size*foldsX, 0, 0))
-        matrix = np.dot(matrix, advent.rotateY(90))
-    elif foldsX > 1:
-        matrix = np.dot(advent.translate(-size*foldsX, 0, 0))
-        matrix = np.dot(matrix, advent.rotateY(-90))
-
-    pos2d = (pos[0], [pos[1]], 0, 1)
-    pos3d = np.dot(pos2d, matrix)
-    return tuple(pos3d[:3])
+    sideX = math.floor(pos[0] / size) % 2
+    sideY = math.floor(pos[1] / size)
+    posX = pos[0] % size
+    posY = pos[1] % size
+    return ((posX, posY), (sideX, sideY))
 
 class Grove(object):
 
     def __init__(self, cubewidth: int):
-        self.grid = defaultdict(lambda: ' ')
-        self.grid3 = defaultdict(lambda: ' ')
+        self.grid = {}
+        for side in SIDES:
+            self.grid[side] = Side(side)
         self.start = None
         self.pos = None
-        self.height = 0
-        self.width = 0
         self.direction = (1, 0)
         self.cubewidth = cubewidth
-
-    def threeD(self, pos2: Tuple[int]):
-        pos2 = tuple(x % (self.cubewidth * 4) for x in pos2)
-        y = 0
-        if pos2[0] >= 0 and pos2[0] < self.cubewidth:
-            x = pos2[0]
-            z = 0
-        elif pos2[0] >= self.cubewidth and pos2[0] < self.cubewidth*2:
-            x = self.cubewidth
-            z = pos2[0]
-        elif pos2[0] >= self.cubewidth*2 and pos2[0] < self.cubewidth*3:
-            x = self.cubewidth - pos2[0]
-            z = self.cubewidth
-        elif pos2[0] >= self.cubewidth*3 and pos2[0] < self.cubewidth*4:
-            x = 0
-            z = self.cubewidth - pos2[0]
-
-        if pos2[1] >= 0 and pos2[1] < self.cubewidth:
-            y = pos2[0]
-            z = 0
-        elif pos2[1] >= self.cubewidth and pos2[1] < self.cubewidth*2:
-            x = self.cubewidth
-            y = pos2[0]
-        elif pos2[1] >= self.cubewidth*2 and pos2[1] < self.cubewidth*3:
-            x = self.cubewidth - pos2[0]
-            y = self.cubewidth
-        elif pos2[1] >= self.cubewidth*3 and pos2[1] < self.cubewidth*4:
-            x = 0
-            y = self.cubewidth - pos2[0]
-
-        return (x, y, z)
-
 
 
     def add_row(self, row: Iterator[str]):
         for x, d in enumerate(row):
             mypos = (x, self.height)
-            self.grid[mypos] = d
             if self.start is None and d == '.':
                 self.start = mypos
                 self.pos = self.start
-            if d != ' ':
+            if self.start:
                 relpos = advent.subpos(mypos, self.start)
-                pos3d = self.threeD(relpos)
-                print(f"pod={mypos} relpos={relpos} 3d={pos3d}")
+                p3, sd = translate_3d(relpos)
+                self.grid[sd].put(p3, d)
 
         self.height += 1
-        self.width = max(self.width, len(row))
 
     def step(self):
-        nextpos = ((self.pos[0] + self.direction[0]) % self.width, (self.pos[1] + self.direction[1]) % self.height)
-        while self.grid[nextpos] == ' ':
-            nextpos = ((nextpos[0] + self.direction[0]) % self.width, (nextpos[1] + self.direction[1]) % self.height)
+        def fdirect(x):
+            if x is None:
+                return 0
+            if x == 0:
+                return 1
+            if return -1
+        def fnextpos(dimen, flopside, newflop):
+            # dimension if the new side (flopside), so return the new flop value
+            if dimen == flopside:
+                return newflop
+            # dimension is the previous side, so use the cubewidth or 0
+            if self.curside[dimen] == 1:
+                return self.cubewidth-1
+            if self.curside[dimen] == 0:
+                return 0
+            # Return the old dimension position
+            return self.pos[dimen]
 
-        # Stop
-        if self.grid[nextpos] == '#':
-            return
 
-        self.pos = nextpos
+        nextpos = advent.addpos(self.pos, self.direction)
+        nextdir = self.direction
+        nextside = self.curside
+        for d in dimension:
+            if nextpos[d] >= self.cubewidth or nextpos[d] < 0:
+                nval = 0 if nextpos[d] < 0 else 1
+                nextdir = tuple(fdirect(c) for c in self.curside)
+                nextpos = tuple(fnextpos(c, d, nval) for c in range(3))
+                nextside = tuple(1 if i == d else None in i range(3))
 
+        # If next position is not a wall
+        if self.grid[nextside][nextpos] != '#':
+            self.curside = nextside
+            self.direction = nextdir
+            self.pos = nextpos
+            
     def move(self, steps: Any):
         if steps in ('L', 'R'):
             self.turn(steps)
@@ -134,12 +136,28 @@ class Grove(object):
                 self.step()
 
     def turn(self, direct: str):
+        deg = 0
         if direct == 'R':
-            direction = advent.rotate2(self.direction, 90)
+            deg = 90
         elif direct == 'L':
-            direction = advent.rotate2(self.direction, -90)
+            deg = -90
         else:
-            raise ValueError(dir)
+            raise ValueError("BAD direction " + direct)
+
+        if self.curside == (None, None, 1):
+            direction = rotateZ(self.direction, deg)
+        elif self.curside == (None, None, 0):
+            direction = rotateZ(self.direction, -deg)
+        elif self.curside == (None, 1, None):
+            direction = rotateY(self.direction, deg)
+        elif self.curside == (None, 0, None):
+            direction = rotateY(self.direction, -deg)
+        elif self.curside == (1, None, None):
+            direction = rotateX(self.direction, deg)
+        elif self.curside == (0, None, None):
+            direction = rotateX(self.direction, -deg)
+        else
+            raise ValueError("BAD side " + self.curside)
         self.direction = direction
 
     @property
@@ -198,4 +216,6 @@ def main():
 
 
 if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
     main()
