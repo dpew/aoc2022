@@ -99,10 +99,12 @@ class Blizzard:
            print(''.join(thingat((x,y)) for x in range(self.max[0]+1)))
         
 class Node:
-    def __init__(self, pos, time):
+    def __init__(self, pos, time, sstart, send):
         self.pos = pos
         self.time = time
-        self.eq = (pos, time)
+        self.sstart = sstart
+        self.send = send
+        self.eq = (pos, time, sstart, send)
 
     def __hash__(self):
         return hash(self.eq)
@@ -142,7 +144,7 @@ def main():
 
         return timedict[t]
 
-    start = Node(blizzard.start, 0)
+    start = Node(blizzard.start, 0, False, False)
     seen = set()
     Q = set()
     Q.add(start)
@@ -158,8 +160,10 @@ def main():
         #print(blizzard.print(node.pos, bliz))
         for d in MOVES:
             np = advent.addpos(node.pos, d)
+            send = node.send or np == blizzard.end
+            sstart = node.sstart or (node.send and np == blizzard.start)
             if blizzard.safe(np) and np not in bliz:
-                yield Node(np, node.time+1)
+                yield Node(np, node.time+1, sstart, send)
 
     found = None
     while Q and not found:
@@ -167,7 +171,7 @@ def main():
         seen.add(next)
         print(f"STEP next={next}")
         for n in neighbors(next):
-            if n.pos == blizzard.end:
+            if n.pos == blizzard.end and n.sstart and n.send:
                 found = n
                 break
             if n not in seen:
