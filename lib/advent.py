@@ -360,6 +360,67 @@ def merge_intervals(intervals: List[List[int]]) -> List[List[int]]:
             stack.append(i)
     return stack
 
+def translate(dx: int, dy: int, dz: int):
+    '''
+        Generates 3D matrix that translates point by dx, dy, dz
+        >>> import numpy as np
+        >>> list(np.dot([1, 2, 3, 1], translate(3, 2, 1)))
+        [4, 4, 4, 1]
+    '''
+    return [[1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [dx, dy, dz, 1]]
+
+def rotateX(deg: int):
+    '''
+        Generates 3D matrix that rotates point clockwise around the X axis
+        >>> import numpy as np
+        >>> list(np.dot([1, 2, 3, 1], rotateX(90)))
+        [1, 3, -2, 1]
+    '''
+    rad = deg * math.pi / 180.0
+    cval = round(math.cos(rad))
+    sval = round(math.sin(rad))
+#     print(f"deg={deg} cos={cval} sin={sval}")
+    return  [
+      [    1,    0,     0, 0],
+      [    0, cval, -sval, 0],
+      [    0, sval,  cval, 0],
+      [    0,    0,     0, 1]]
+
+def rotateY(deg: int):
+    '''
+        Generates 3D matrix that rotates point clockwise around the Y axis
+        >>> import numpy as np
+        >>> list(np.dot([1, 2, 3, 1], rotateY(90)))
+        [-3, 2, 1, 1]
+    '''
+    rad = deg * math.pi / 180.0
+    cval = round(math.cos(rad))
+    sval = round(math.sin(rad))
+    return  [
+      [ cval,    0, sval, 0],
+      [    0,    1,    0, 0],
+      [ -sval,   0, cval, 0],
+      [    0,    0,    0, 1]]
+
+def rotateZ(deg: int):
+    '''
+        Generates 3D matrix that rotates point clockwise around the Z axis
+        >>> import numpy as np
+        >>> list(np.dot([1, 2, 3, 1], rotateZ(90)))
+        [2, -1, 3, 1]
+    '''
+    rad = deg * math.pi / 180.0
+    cval = round(math.cos(rad))
+    sval = round(math.sin(rad))
+    return  [
+      [ cval, -sval, 0, 0],
+      [ sval, cval, 0, 0],
+      [    0,    0, 1, 0],
+      [    0,    0, 0, 1]]
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
