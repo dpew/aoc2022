@@ -134,17 +134,17 @@ def translate_3d(pos: Tuple[int], size: int) -> Tuple[int]:
     if sideY == 2:
         if sideX == 0:
             return ((posX, nposY, 1), SIDES['Z1'])
+        if sideX == 1:
+            return ((1, nposY, nposX), SIDES['X1'])
         if sideX == -1:
             return ((0, nposY, posX), SIDES['X0'])
         if sideX == -2:
             return ((0, nposY, posX), SIDES['X0'])
-    if sideY == 2:
-        if sideX == 0:
-            return ((posX, nposY, 1), SIDES['Z1'])
+    if sideY == 3:
         if sideX == -1:
-            return ((0, nposY, posX), SIDES['X0'])
-        if sideX == 1:
-            return ((1, nposY, nposX), SIDES['X1'])
+            return ((0, posY, posX), SIDES['X0'])
+        if sideX == 0:
+            return ((posX, 1, posY), SIDES['Y1'])
     raise ValueError((sideX, sideY))
 
 class Grove(object):

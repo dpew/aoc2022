@@ -421,6 +421,12 @@ def rotateZ(deg: int):
       [    0,    0, 1, 0],
       [    0,    0, 0, 1]]
 
+def pos_to_vector3(pos):
+    return (pos[0], pos[1], pos[2], 1)
+
+def vector3_to_pos(vector):
+    return tuple(vector)[:3]
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
