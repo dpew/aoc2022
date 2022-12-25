@@ -151,11 +151,13 @@ class Grove(object):
 
     def __init__(self, cubewidth: int):
         self.grid = {}
+        self.d2tod3 = {}
+        self.d3tod2 = {}
         for side in SIDES.values():
             self.grid[side] = Side(side)
         self.height = 0
         self.start = None
-        self.pos = (0, 0, 0)
+        self.pos = (0, 3, 0)
         self.direction = (1, 0, 0)
         self.cubewidth = cubewidth
         self.curside = SIDES['Z0']
@@ -177,6 +179,8 @@ class Grove(object):
                 relpos = advent.subpos(mypos, self.start)
                 p3, sd = translate_3d(relpos, self.cubewidth)
                 self.grid[sd].put(p3, d)
+                self.d2tod3[mypos] = (p3, sd)
+                self.d3tod2[(p3, sd)] = mypos
 
         self.height += 1
 
@@ -200,24 +204,26 @@ class Grove(object):
             return self.pos[dimen]
 
 
+        print(f" curside={self.curside}  direct={self.direction}  curpos={self.pos}")
         nextpos = advent.addpos(self.pos, self.direction)
         nextdir = self.direction
         nextside = self.curside
         for d in (0, 1, 2):
             if nextpos[d] >= self.cubewidth or nextpos[d] < 0:
-                nval = 1 if nextpos[d] < 0 else 0
+                nval = 0 if nextpos[d] < 0 else 1
                 nextdir = tuple(fdirect(c) for c in self.curside)
                 nextside = tuple(nval if i == d else None for i in range(3))
                 nextpos = tuple(fnextpos(c, d, nval) for c in range(3))
-                print(f" curside={self.curside} direction={self.direction} pos={self.pos}")
                 print(f"nextside={nextside} nextdir={nextdir} nextpos={nextpos}")
 
         # If next position is not a wall
-        pprint.pprint(self.grid[nextside].grid)
+        #pprint.pprint(self.grid[nextside].grid)
         if self.grid[nextside][nextpos] != '#':
             self.curside = nextside
             self.direction = nextdir
             self.pos = nextpos
+        else:
+            print('blocked')
             
     def move(self, steps: Any):
         if steps in ('L', 'R'):
@@ -232,7 +238,8 @@ class Grove(object):
 
     @property
     def mypos(self):
-        return advent.subpos(self.pos, self.start)
+        d3pos = (self.pos, self.curside)
+        return self.d3tod2[d3pos]
         
 def process_moves(moves: str):
     buffer = ''
@@ -273,14 +280,16 @@ def main():
             gmoves = True
     #grove.print()
 
+    print(f"pos={grove.mypos}, 3dpos={grove.pos} dir={grove.direction}")
     for m in process_moves(moves):
         print(m)
         grove.move(m)
-        print(f"pos={grove.pos}, dir={grove.direction}")
+        print(f"pos={grove.mypos}, 3dpos={grove.pos} dir={grove.direction}")
 
 
-    pos = grove.pos
-    value = 1000 * (pos[1]+1) + 4 * (pos[0]+1) + DVALUE[grove.direction]
+    pos = grove.mypos
+    print(f"mypos={pos}")
+    value = 1000 * (pos[1]+1) + 4 * (pos[0]+1) # + DVALUE[grove.direction]
     print(value) 
 
 
