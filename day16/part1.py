@@ -38,12 +38,13 @@ def parse(data: List[str]) -> Dict[str, Node]:
     return nodes
 
 class Path(object):
-    def __init__(self, node: str, time: int, opened: FrozenSet[str], value: int):
+    def __init__(self, node: str, time: int, opened: FrozenSet[str], value: int = 0, flow: int = 0):
         self.node = node
         self.time = time
         self.opened = opened
         self.value = value
-        self.eq = (self.node, self.time, self.opened, self.value)
+        self.flow = flow
+        self.eq = (self.node, self.opened, self.value, self.time)
 
     def __hash__(self):
         return hash(self.eq)
@@ -51,8 +52,17 @@ class Path(object):
     def __eq__(self, other):
         return self.eq == other.eq
 
+    def goTo(self, newnode: str):
+        return Path(newnode, self.time + 1, self.opened, self.flow + self.value, self.flow)
+
+    def openValve(self, flow: int):
+        newflow = self.flow + flow
+        opened = tuple(chain(self.opened, [self.node]))
+        return Path(self.node, self.time + 1, opened=opened, value=(self.flow + self.value), flow=newflow)
+
+
     def __repr__(self):
-        return f"node={self.node} val={self.value} t={self.time} opened={self.opened}"
+        return f"node={self.node} t={self.time} v={self.value} f={self.flow} opened={self.opened}"
 
 def main():
     try:
@@ -65,53 +75,46 @@ def main():
     nodes = parse(data)
     print("\n".join(repr(n) for n in nodes.values()))
 
-    pos = Path('AA', 30, frozenset(), 0)
-    maxopened = defaultdict(lambda: -1)
-    maxopened['ALL'] = (-1, 0)
     seen = set()
-    Q = set()
-    Q.add(pos)    
-
+    pos = Path('AA', 0, frozenset(), 0)
+    
     def findmax():
         # print(f"POPMIN Q={Q}")
-        next = max(Q, key=lambda v: (v.time, v.value))
+        next = max(Q, key=lambda v: v.value)
         Q.remove(next)
         # print(f"POPMIN {next} {Q}")
         return next
 
-
     def neighbors(pos: Path):
         # if value has not been opened, open it
         node = nodes[pos.node]
-        time = pos.time - 1
-        if time == 0:
-            return
 
-        if maxopened[pos.opened] > pos.value:
-            return
-
+        # open flow
         if pos.node not in pos.opened and node.flow > 0:
-            p = Path(pos.node, time, frozenset(chain(pos.opened, [pos.node])), pos.value + node.flow * time)
-            if p.value > maxopened['ALL'][0]:
-                maxopened['ALL'] = (p.value, p.opened)
-            if p.value >= maxopened[p.opened]:
-                maxopened[p.opened] = p.value
-                yield p
+            yield pos.openValve(node.flow)
 
         for n in node.vert:
-            yield Path(n, time, pos.opened, pos.value)
+            yield pos.goTo(n)
 
-        
-    
-    while Q:
-        next = findmax()
-        seen.add(next)
-        # print(f"STEP next={next}")
-        for n in neighbors(next):
-            # print(repr(n))
-            Q.add(n)
-    print(n)
-    print(maxopened['ALL'])
+
+    path31 = deque()
+    def dfs(p: Path):
+        for n in neighbors(p):
+            if n in seen:
+                continue
+            if n.time == 30:
+                path31.append(n)
+                return
+            seen.add(n)
+            dfs(n)
+
+    dfs(pos)
+    mval = max(path31, key=lambda x: x.value)
+
+    print("ANSWER")
+    print(mval)
+    #print(f"max = {mval.value}")
+    # print(seen)
 
 if __name__ == '__main__':
     main()
