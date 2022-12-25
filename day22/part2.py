@@ -46,7 +46,7 @@ class Side:
 
     def put(self, pos, val):
         if pos in self.grid:
-            raise KeyError(f"Side: {self.side} pos={pos}")
+            raise KeyError(f"ALREADY SEEN Side: {self.side} pos={pos}")
         self.grid[pos] = val
 
     def __getitem__(self, pos):
@@ -111,7 +111,7 @@ def translate_3d(pos: Tuple[int], size: int) -> Tuple[int]:
         >>> translate_3d((-3, 7), 4)
         ((0, 2, 3), (0, None, None))
     '''
-    print(f't3d {pos}')
+    #print(f't3d {pos}')
     sideX = math.floor(pos[0] / size)
     sideY = math.floor(pos[1] / size)
     posX = pos[0] % size
@@ -119,32 +119,59 @@ def translate_3d(pos: Tuple[int], size: int) -> Tuple[int]:
     nposX = size - posX - 1
     posY = size - nposY - 1
     
-    if sideY == 0:
-        if sideX == 0:
-            return ((posX, posY, 0), SIDES['Z0'])
-        if sideX == 1:
-            return ((1, posY, posX), SIDES['X1'])
-    if sideY == 1:
-        if sideX == 0:
-            return ((posX, 0, nposY), SIDES['Y0'])
-        if sideX == -1:
-            return ((0, nposX, nposY), SIDES['X0'])
-        if sideX == -2:
-            return ((nposX, 1, nposY), SIDES['Y1'])
-    if sideY == 2:
-        if sideX == 0:
-            return ((posX, nposY, 1), SIDES['Z1'])
-        if sideX == 1:
-            return ((1, nposY, nposX), SIDES['X1'])
-        if sideX == -1:
-            return ((0, nposY, posX), SIDES['X0'])
-        if sideX == -2:
-            return ((0, nposY, posX), SIDES['X0'])
-    if sideY == 3:
-        if sideX == -1:
-            return ((0, posY, posX), SIDES['X0'])
-        if sideX == 0:
-            return ((posX, 1, posY), SIDES['Y1'])
+    # For SAMPLE ONLY 
+    if size == 4:
+        if sideY == 0:
+            if sideX == 0:
+                return ((posX, posY, 0), SIDES['Z0'])
+            if sideX == 1:
+                return ((1, posY, posX), SIDES['X1'])
+        if sideY == 1:
+            if sideX == 0:
+                return ((posX, 0, nposY), SIDES['Y0'])
+            if sideX == -1:
+                return ((0, nposX, nposY), SIDES['X0'])
+            if sideX == -2:
+                return ((nposX, 1, nposY), SIDES['Y1'])
+        if sideY == 2:
+            if sideX == 0:
+                return ((posX, nposY, 1), SIDES['Z1'])
+            if sideX == 1:
+                return ((1, nposY, nposX), SIDES['X1'])
+            if sideX == -1:
+                return ((0, nposY, posX), SIDES['X0'])
+            if sideX == -2:
+                return ((0, nposY, posX), SIDES['X0'])
+        if sideY == 3:
+            if sideX == -1:
+                return ((0, posY, posX), SIDES['X0'])
+            if sideX == 0:
+                return ((posX, 1, posY), SIDES['Y1'])
+    else:
+        if sideY == 0:
+            if sideX == 0:
+                return ((posX, posY, 0), SIDES['Z0'])
+            if sideX == 1:
+                return ((1, posY, posX), SIDES['X1'])
+        if sideY == 1:
+            if sideX == 0:
+                return ((posX, 0, nposY), SIDES['Y0'])
+            if sideX == -1:
+                return ((0, nposX, nposY), SIDES['X0'])
+            if sideX == -2:
+                return ((nposX, 1, nposY), SIDES['Y1'])
+        if sideY == 2:
+            if sideX == 0:
+                return ((posX, nposY, 1), SIDES['Z1'])
+            if sideX == 1:
+                return ((1, nposY, nposX), SIDES['X1'])
+            if sideX == -1:
+                return ((0, nposY, posX), SIDES['X0'])
+            if sideX == -2:
+                return ((0, nposY, posX), SIDES['X0'])
+        if sideY == 3:
+            if sideX == -1:
+                return ((nposY, 1, posX), SIDES['Y1'])
     raise ValueError((sideX, sideY))
 
 class Grove(object):
@@ -157,10 +184,10 @@ class Grove(object):
             self.grid[side] = Side(side)
         self.height = 0
         self.start = None
-        self.pos = (0, 3, 0)
+        self.pos, self.curside = translate_3d((0, 0, 0), cubewidth)
         self.direction = (1, 0, 0)
         self.cubewidth = cubewidth
-        self.curside = SIDES['Z0']
+        #self.curside = SIDES['Z0']
 
     def print(self):
         for sname, sval in SIDES.items():
@@ -291,6 +318,7 @@ def main():
     print(f"mypos={pos}")
     value = 1000 * (pos[1]+1) + 4 * (pos[0]+1) # + DVALUE[grove.direction]
     print(value) 
+    print("PLUS 2 for direction manually computed for input")
 
 
 
